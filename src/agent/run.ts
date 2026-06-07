@@ -1,10 +1,8 @@
-import {generateText, type ModelMessage} from 'ai';
-import { deepseek , createDeepSeek} from '@ai-sdk/deepseek';
-import { createOpenAI , openai} from '@ai-sdk/openai'; // 这是一个适配层，可以切换不同的模型
-import { OpenAI } from 'openai';  
-import { SYSTEM_PROMPT } from './system/prompt';    
+import { generateText, type ModelMessage } from 'ai';
+import { deepseek, createDeepSeek } from '@ai-sdk/deepseek';
+import { SYSTEM_PROMPT } from './system/prompt';
 import type { AgentCallbacks } from '../types';
-import { tools, fileTools } from './tools';
+import { tools, fileTools, dateTimeTools } from './tools/index.ts';
 import { executeTool } from './executeTool';
 import dotenv from 'dotenv'; //把项目根目录里的 .env 文件加载进 process.env 里
 dotenv.config();
@@ -14,12 +12,18 @@ export async function runAgent(
     conversationHistory?: ModelMessage[],
     callbacks?: AgentCallbacks
 ): Promise<any> {
-    const{ text ,toolCalls } = await generateText({
-    model: deepseek('deepseek-reasoner'),
-    system: "You are a helpful assistant.",
-    prompt: userMessage,
-
+    const { text, toolCalls } = await generateText({
+        model: deepseek(MODEL_NAME),
+        system: SYSTEM_PROMPT,
+        prompt: userMessage,
+        tools,
     })
-    console.log('Generated text:', text);
+    if (toolCalls) {
+        for (const toolCall of toolCalls) {
+            const { toolName, input } = toolCall;
+            const result = await executeTool(toolName as any, input);
+            console.log(result);
+        }
+    }
 }
-runAgent('hello,can you hear me?') 
+runAgent('hello,what time is now?') 

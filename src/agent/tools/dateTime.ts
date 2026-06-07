@@ -3,8 +3,9 @@ import { z } from 'zod';
 
 export const dateTime = tool({
     description: 'get the current date and time',
-    input: z.object({}), //这个工具函数不需要输入参数
+    title: 'Date and Time Tool',
+    inputSchema: z.object({}), //这个工具函数不需要输入参数
     execute: async () => {
-        return new Date().toString();
+        return `Current date and time: ${new Date().toLocaleString()}`;
     }
 });

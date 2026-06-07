@@ -2,15 +2,20 @@
 import {writeFile,listFiles, deleteFile,readFile} from "./file.ts";
 import { executeShellCommand } from "./shell.ts";
 import { executeCode } from "./codeExecution.ts";
+import {dateTime} from "./dateTime.ts";
 export const tools = {
     writeFile,
     listFiles,
     deleteFile,
     readFile,
     executeShellCommand,
-    executeCode
+    executeCode,
+    dateTime
 };
 
+export const dateTimeTools = {
+    dateTime
+};
 
 export const fileTools = {
     writeFile,
