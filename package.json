@@ -27,7 +27,7 @@
   "dependencies": {
     "@ai-sdk/deepseek": "^2.0.35",
     "@ai-sdk/openai": "^2.0.72",
-    "@lmnr-ai/lmnr": "^0.7.9",
+    "@lmnr-ai/lmnr": "^0.7.16",
     "@types/shelljs": "^0.8.17",
     "ai": "^6.0.197",
     "dotenv": "^17.2.3",
