@@ -22,12 +22,12 @@ export function toolSelectionScore(
     return output.selectedAny ? 0.5 : 1;
   }
 
-  const expected = new Set(target.expectedTools);
-  const selected = new Set(output.toolNames);
+  const expected = new Set(target.expectedTools); // 标准答案中模型应该调用tools的次数
+  const selected = new Set(output.toolNames); // 实际模型调用tools的次数
 
   const hits = output.toolNames.filter((t) => expected.has(t)).length;
   const precision = selected.size > 0 ? hits / selected.size : 0;
-  const recall = expected.size > 0 ? hits / expected.size : 0;
+  const recall = expected.size > 0 ? hits / expected.size : 0; // 
 
   // Simple F1-ish score
   if (precision + recall === 0) return 0;

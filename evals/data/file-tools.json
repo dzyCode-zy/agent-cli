@@ -40,7 +40,7 @@
   },
   {
     "data": {
-      "prompt": "Remove the old backup.txt file",
+      "prompt": "delete the file",
       "tools": ["readFile", "writeFile", "listFiles", "deleteFile"]
     },
     "target": {
