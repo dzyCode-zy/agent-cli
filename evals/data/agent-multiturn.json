@@ -15,7 +15,8 @@
         }
       },
       "config": {
-        "maxSteps": 5
+        "maxSteps": 5,
+        "model": "deepseek-reasoner"
       }
     },
     "target": {
