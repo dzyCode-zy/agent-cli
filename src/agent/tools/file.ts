@@ -1,4 +1,4 @@
-import { tool } from 'ai'; //用来定义一个可被大模型调用的“工具函数”
+import { tool } from 'ai'; // 用来定义一个可被大模型调用的“工具函数”
 import { z } from 'zod';
 import fs from 'node:fs/promises';
 import nodePath from 'node:path';
