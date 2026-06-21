@@ -10,15 +10,10 @@ export const DEFAULT_THRESHOLD = 0.8;
  * Currently only includes GPT-5 models
  */
 const MODEL_LIMITS: Record<string, ModelLimits> = {
-  "gpt-5": {
-    inputLimit: 272000,
-    outputLimit: 128000,
-    contextWindow: 400000,
-  },
-  "gpt-5-mini": {
-    inputLimit: 272000,
-    outputLimit: 128000,
-    contextWindow: 400000,
+  "deepseek-chat": {
+    inputLimit: 600000,
+    outputLimit: 200000,
+    contextWindow: 1000000,
   },
 };
 
@@ -43,8 +38,8 @@ export function getModelLimits(model: string): ModelLimits {
   }
 
   // Check for gpt-5 variants
-  if (model.startsWith("gpt-5")) {
-    return MODEL_LIMITS["gpt-5"];
+  if (model.startsWith("deepseek-chat")) {
+    return MODEL_LIMITS["deepseek-chat"];
   }
 
   return DEFAULT_LIMITS;
@@ -58,7 +53,7 @@ export function isOverThreshold(
   contextWindow: number,
   threshold: number = DEFAULT_THRESHOLD,
 ): boolean {
-  return false;
+  return totalTokens > contextWindow * threshold;
 }
 
 /**
@@ -68,5 +63,5 @@ export function calculateUsagePercentage(
   totalTokens: number,
   contextWindow: number,
 ): number {
-  return 0;
+  return (totalTokens / contextWindow) * 100;
 }

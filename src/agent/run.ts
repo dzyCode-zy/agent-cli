@@ -8,13 +8,24 @@ import { Laminar, getTracer } from '@lmnr-ai/lmnr'; //evals 工具
 import { filterCompatibleMessages } from './system/filterMessages.ts';
 import 'dotenv/config';
 import dotenv from 'dotenv'; //把项目根目录里的 .env 文件加载进 process.env 里
+import {
+    estimateMessagesTokens,
+    getModelLimits,
+    isOverThreshold,
+    calculateUsagePercentage,
+    compactConversation,
+    DEFAULT_THRESHOLD,
+} from "./context/index.ts";
+import { is } from 'zod/locales';
+
 dotenv.config();
 Laminar.initialize({
     projectApiKey: process.env.LMNR_PROJECT_API_KEY || '',
 }
 );
-const MODEL_NAME = 'deepseek-chat';
 
+const MODEL_NAME = 'deepseek-chat';
+const modelLimits = getModelLimits(MODEL_NAME);
 /**
  * single-tune-agent 
  */
@@ -47,16 +58,19 @@ const MODEL_NAME = 'deepseek-chat';
  * agent loop
  */
 export async function runAgent(
-    userMessage: string, 
-    conversationHistory?: ModelMessage[], 
+    userMessage: string,
+    conversationHistory?: ModelMessage[],
     callbacks?: AgentCallbacks): Promise<any> {
     const historyMessages = conversationHistory ? filterCompatibleMessages(conversationHistory) : [];
-    const messages: ModelMessage[] = [
+    let messages: ModelMessage[] = [
         { role: 'system', content: SYSTEM_PROMPT },
         ...historyMessages,
         { role: 'user', content: userMessage },
     ];
-    console.log('messages:', messages);
+    const preCheckToken = estimateMessagesTokens(messages); // 计算 token 消耗量
+    if (isOverThreshold(preCheckToken.total, modelLimits.contextWindow)) {
+        messages = await compactConversation(historyMessages, MODEL_NAME);
+    }
     let fullResponse = '';
     while (true) {
         const result = streamText({
@@ -68,14 +82,29 @@ export async function runAgent(
                 tracer: getTracer(),
             },
         });
-        console.log('result:', result.fullStream);
+        const reportTokenmessage = () => {
+            if (callbacks?.onTokenUsage) {
+                const usage = estimateMessagesTokens(messages);
+                callbacks.onTokenUsage({
+                    inputTokens: usage.input,
+                    outputTokens: usage.output,
+                    totalTokens: usage.total,
+                    contextWindow: modelLimits.contextWindow,
+                    threshold: DEFAULT_THRESHOLD,
+                    percentage: calculateUsagePercentage(
+                        usage.total,
+                        modelLimits.contextWindow,
+                    ),
+                })
+            }
+        }
         const toolCalls = [];
         let currentResponse = '';
         let streamError: Error | null = null;
         try {
             for await (const part of result.fullStream) {
                 if (part.type === 'text-delta') {
-                    currentResponse+= part.text;
+                    currentResponse += part.text;
                     callbacks?.onToken(part.text);
                 }
                 if (part.type === 'tool-call') {
@@ -107,6 +136,7 @@ export async function runAgent(
         if (finishReason !== 'tool-calls' || toolCalls.length === 0) {
             const responseMessage = await result.response; // 一个包含本次对话完整响应元数据的对象。
             messages.push(...responseMessage.messages);
+            reportTokenmessage();
             break;
         };
         // 处理工具调用
@@ -123,11 +153,11 @@ export async function runAgent(
                     type: 'tool-result',
                     toolCallId: toolCall.toolCallId,
                     toolName: toolCall.toolName,
-                    output: { type: 'text', value: result},
+                    output: { type: 'text', value: result },
                 }],
             });
+            reportTokenmessage();
         };
-
     };
     callbacks?.onComplete(fullResponse);
     return messages;

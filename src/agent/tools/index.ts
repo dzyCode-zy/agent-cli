@@ -3,6 +3,7 @@ import {writeFile,listFiles, deleteFile,readFile} from "./file.ts";
 import { executeShellCommand } from "./shell.ts";
 import { executeCode } from "./codeExecution.ts";
 import {dateTime} from "./dateTime.ts";
+import { webSearch } from "./webSearch.ts"
 export const tools = {
     writeFile,
     listFiles,
@@ -10,8 +11,9 @@ export const tools = {
     readFile,
     executeShellCommand,
     executeCode,
-    dateTime
-};
+    dateTime,
+    webSearch: webSearch as any,
+} as any;
 
 export const dateTimeTools = {
     dateTime
